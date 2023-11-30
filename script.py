@@ -3,7 +3,7 @@ import curses
 import time
 
 # default gif
-animated = 'example'
+animated = 'gif4'
 
 colors = {}
 
@@ -34,7 +34,8 @@ def closest_color(r, g, b):
     """ given (0-255) rgb values finds the closest color id
     previously initialized in init_color_variatiosn()
     """
-    return colors[round(r/50) * 200][round(g/50) * 200][round(b/50) * 200]
+    r, g, b = r * 3.91, g * 3.91, b * 3.91
+    return colors[round(r/200) * 200][round(g/200) * 200][round(b/200) * 200]
 
 """ curses works with color pairs (fg - bg), we can create
 65536 of those, to optimize this we will save the pairs we
@@ -55,23 +56,25 @@ def play(win, frames):
     """
     global color_pair_map, pair_number
 
+    f = 0
+
     h, w = win.getmaxyx()
     for frame in frames:
         for y in range(0, h - 2):
             for x in range(0, w - 1):
                 rt, gt, bt = frame.getpixel((x, 2 * y))
                 rb, gb, bb = frame.getpixel((x, 2 * y + 1))
-                closest_top = closest_color(rt, gt, bt)
-                closest_bottom = closest_color(rb, gb, bb)
+                ctop = closest_color(rt, gt, bt)
+                cbottom = closest_color(rb, gb, bb)
 
-                color_id = closest_top + closest_bottom
-
-                if color_id not in color_pair_map:
-                    curses.init_pair(pair_number, closest_bottom, closest_top)
-                    color_pair_map[color_id] = pair_number
+                if ctop not in color_pair_map or cbottom not in color_pair_map[ctop]:
+                    curses.init_pair(pair_number, cbottom, ctop)
+                    if ctop not in color_pair_map:
+                        color_pair_map[ctop] = {}
+                    color_pair_map[ctop][cbottom] = pair_number
                     pair_number += 1
 
-                win.addch(y + 1, x + 1, '▄', curses.color_pair(color_pair_map[color_id]))
+                win.addch(y + 1, x + 1, '▄', curses.color_pair(color_pair_map[ctop][cbottom]))
 
         win.refresh()
         time.sleep(frame.info['duration'] / 1000)
