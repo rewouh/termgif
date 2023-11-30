@@ -1,6 +1,6 @@
 # termgif
 
-Simple python implementation for gif display in unix terms.
+Simple python implementation for gif displaying in unix terms.
 
 Required libraries: Pillow, Curses
 
